@@ -48,19 +48,25 @@ ln -sf "$TARGET_DIR/bin/code-server" "$INSTALL_BIN_DIR/code-server"
 # 6. Optimization: Update PATH for Bash and Zsh with duplication check
 PATH_LINE="export PATH=\"\$PATH:$INSTALL_BIN_DIR\""
 
-for CONF in "${SHELL_CONFIGS[@]}"; do
-    if [ -f "$CONF" ]; then
-        # Check if the path already exists in the config file
-        if ! grep -q "$INSTALL_BIN_DIR" "$CONF"; then
-            echo "Adding code-server path to $CONF"
-            echo "" >> "$CONF"
-            echo "# code-server path added by install script" >> "$CONF"
-            echo "$PATH_LINE" >> "$CONF"
-        else
-            echo "Path already exists in $CONF, skipping..."
+# Check if INSTALL_BIN_DIR is already in the PATH
+if [[ ":$PATH:" == *":$INSTALL_BIN_DIR:"* ]]; then
+    echo "code-server path is already in the current environment PATH."
+    echo "Skipping modification of shell configuration files."
+else
+    for CONF in "${SHELL_CONFIGS[@]}"; do
+        if [ -f "$CONF" ]; then
+            # Check if the path already exists in the config file
+            if ! grep -q "$INSTALL_BIN_DIR" "$CONF"; then
+                echo "Adding code-server path to $CONF"
+                echo "" >> "$CONF"
+                echo "# code-server path added by install script" >> "$CONF"
+                echo "$PATH_LINE" >> "$CONF"
+            else
+                echo "Path already exists in $CONF, skipping..."
+            fi
         fi
-    fi
-done
+    done
+fi
 
 echo "------------------------------------------------"
 echo "Installation and environment setup complete!"

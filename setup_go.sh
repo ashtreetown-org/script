@@ -60,17 +60,23 @@ EOF
 CONFIG_FILES=("$HOME/.bashrc" "$HOME/.zshrc")
 UPDATED_FILES=()
 
-for CONF in "${CONFIG_FILES[@]}"; do
-    if [ -f "$CONF" ]; then
-        if ! grep -q "export GOROOT=" "$CONF"; then
-            echo "$GO_ENV_BLOCK" >> "$CONF"
-            UPDATED_FILES+=("$CONF")
-            echo "Added Go environment to $CONF"
-        else
-            echo "Go environment already exists in $CONF. Skipping."
+# Check if GOROOT is already configured in the current environment
+if [ "$GOROOT" = "$GOROOT_DIR" ] && [[ ":$PATH:" == *":$GOROOT/bin:"* ]]; then
+    echo "Go environment variables are already correctly configured in the current shell."
+    echo "Skipping modification of shell configuration files."
+else
+    for CONF in "${CONFIG_FILES[@]}"; do
+        if [ -f "$CONF" ]; then
+            if ! grep -q "export GOROOT=" "$CONF"; then
+                echo "$GO_ENV_BLOCK" >> "$CONF"
+                UPDATED_FILES+=("$CONF")
+                echo "Added Go environment to $CONF"
+            else
+                echo "Go environment already exists in $CONF. Skipping."
+            fi
         fi
-    fi
-done
+    done
+fi
 
 # 7. Finalize
 echo "--------------------------------------------------"

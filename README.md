@@ -3,7 +3,7 @@
 ## How to use
 
 ```sh
-bash -c "$(curl -fsSL https://ashtreetown.org/download/script/[script_name.sh])"
+bash -c "$(curl -fsSL https://ashtreetown.org/resource/script/[script_name.sh])"
 ```
 
 ## AI Generate Rules:

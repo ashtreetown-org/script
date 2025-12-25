@@ -3,12 +3,13 @@
 # ==========================================================
 # Script Name: setup_go.sh
 # Description: Rootless Go environment setup for Debian/macOS
+# OS: Linux_x86_64, Linux_arm64, macOS_x86_64, macOS_arm64
 # Date: 2025-12-24
 # ==========================================================
 
 set -e
 
-# 1. Fetch the latest Go version for Linux AMD64
+# 1. Fetch the latest Go version
 echo "Checking for the latest Go version..."
 GO_VERSION=$(curl -s https://go.dev/dl/?mode=json | grep -o 'go[0-9.]*' | head -n 1)
 
@@ -19,10 +20,28 @@ fi
 
 echo "Latest version found: $GO_VERSION"
 
-# 2. Define Rootless paths
+# 2. Detect OS and Architecture
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+case "$OS" in
+    Linux)     OS_TYPE="linux" ;;
+    Darwin)    OS_TYPE="darwin" ;;
+    *)         echo "Error: Unsupported OS: $OS"; exit 1 ;;
+esac
+
+case "$ARCH" in
+    x86_64)          ARCH_TYPE="amd64" ;;
+    aarch64|arm64)   ARCH_TYPE="arm64" ;;
+    *)               echo "Error: Unsupported Architecture: $ARCH"; exit 1 ;;
+esac
+
+echo "Detected Platform: $OS_TYPE/$ARCH_TYPE"
+
+# 3. Define Rootless paths
 INSTALL_BASE="$HOME/.local"
 GOROOT_DIR="$INSTALL_BASE/go"
-TAR_FILE="${GO_VERSION}.linux-amd64.tar.gz"
+TAR_FILE="${GO_VERSION}.${OS_TYPE}-${ARCH_TYPE}.tar.gz"
 DOWNLOAD_URL="https://go.dev/dl/${TAR_FILE}"
 
 # Create the directory if it doesn't exist

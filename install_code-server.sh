@@ -3,6 +3,7 @@
 # =================================================================
 # Script Name: install_code-server.sh
 # Description: Script to install/update code-serve
+# OS: Linux_x86_64, Linux_arm64
 # Date: 2025-12-24
 # =================================================================
 

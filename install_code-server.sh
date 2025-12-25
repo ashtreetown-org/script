@@ -3,7 +3,7 @@
 # =================================================================
 # Script Name: install_code-server.sh
 # Description: Script to install/update code-serve
-# OS: Linux_x86_64, Linux_arm64
+# OS: Linux_x86_64, Linux_arm64, macOS_x86_64, macOS_arm64
 # Date: 2025-12-24
 # =================================================================
 
@@ -24,7 +24,26 @@ if [ -z "$VERSION" ]; then
 fi
 
 echo "Target version found: v$VERSION"
-DOWNLOAD_URL="https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-linux-amd64.tar.gz"
+
+# 2. Detect OS and Architecture
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+case "$OS" in
+    Linux)     OS_TYPE="linux" ;;
+    Darwin)    OS_TYPE="macos" ;;
+    *)         echo "Error: Unsupported OS: $OS"; exit 1 ;;
+esac
+
+case "$ARCH" in
+    x86_64)          ARCH_TYPE="amd64" ;;
+    aarch64|arm64)   ARCH_TYPE="arm64" ;;
+    *)               echo "Error: Unsupported Architecture: $ARCH"; exit 1 ;;
+esac
+
+echo "Detected Platform: $OS_TYPE/$ARCH_TYPE"
+
+DOWNLOAD_URL="https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-${OS_TYPE}-${ARCH_TYPE}.tar.gz"
 TARGET_DIR="$INSTALL_LIB_DIR/code-server-$VERSION"
 
 # 2. Create necessary directories
@@ -42,7 +61,7 @@ curl -fL "$DOWNLOAD_URL" | tar -C "$INSTALL_LIB_DIR" -xz
 
 # 5. Setup directory and symbolic link
 echo "Finalizing installation structure..."
-mv "$INSTALL_LIB_DIR/code-server-$VERSION-linux-amd64" "$TARGET_DIR"
+mv "$INSTALL_LIB_DIR/code-server-$VERSION-${OS_TYPE}-${ARCH_TYPE}" "$TARGET_DIR"
 # Force create/update symbolic link in bin directory
 ln -sf "$TARGET_DIR/bin/code-server" "$INSTALL_BIN_DIR/code-server"
 

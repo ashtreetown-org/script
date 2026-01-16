@@ -107,11 +107,58 @@ repair_claude() {
     install_claude
 }
 
+config_router() {
+    echo "Configuring Claude Code Router..."
+
+    # 1. Prompt for ANTHROPIC_BASE_URL
+    read -p "Enter ANTHROPIC_BASE_URL: " BASE_URL
+    if [ -z "$BASE_URL" ]; then
+        echo "Error: ANTHROPIC_BASE_URL cannot be empty."
+        return
+    fi
+
+    # 2. Prompt for ANTHROPIC_AUTH_TOKEN
+    read -p "Enter ANTHROPIC_AUTH_TOKEN: " AUTH_TOKEN
+    if [ -z "$AUTH_TOKEN" ]; then
+        echo "Error: ANTHROPIC_AUTH_TOKEN cannot be empty."
+        return
+    fi
+
+    # 3. Write to shell config files
+    for CONF in "${SHELL_CONFIGS[@]}"; do
+        if [ -f "$CONF" ]; then
+            echo "Checking $CONF..."
+            
+            # Check for existing ANTHROPIC_BASE_URL
+            if grep -q "export ANTHROPIC_BASE_URL=" "$CONF"; then
+                 echo "Warning: ANTHROPIC_BASE_URL is already defined in $CONF. Skipping."
+            else
+                 echo "export ANTHROPIC_BASE_URL=\"$BASE_URL\"" >> "$CONF"
+                 echo "Added ANTHROPIC_BASE_URL to $CONF"
+            fi
+            
+            # Check for existing ANTHROPIC_AUTH_TOKEN
+            if grep -q "export ANTHROPIC_AUTH_TOKEN=" "$CONF"; then
+                 echo "Warning: ANTHROPIC_AUTH_TOKEN is already defined in $CONF. Skipping."
+            else
+                 echo "export ANTHROPIC_AUTH_TOKEN=\"$AUTH_TOKEN\"" >> "$CONF"
+                 echo "Added ANTHROPIC_AUTH_TOKEN to $CONF"
+            fi
+        fi
+    done
+    
+    echo "--------------------------------------------------"
+    echo "Configuration completed!"
+    echo "Please restart your shell or run 'source <shell_config>' to apply changes."
+    echo "--------------------------------------------------"
+}
+
 # Main Menu
 echo "Choose an option:"
 echo "1. install (default)"
 echo "2. uninstall"
 echo "3. repair"
+echo "4. configure claude-code-router"
 read -p "Enter selection [1]: " CHOICE
 CHOICE=${CHOICE:-1}
 
@@ -124,6 +171,9 @@ case "$CHOICE" in
         ;;
     3)
         repair_claude
+        ;;
+    4)
+        config_router
         ;;
     *)
         echo "Invalid choice. Exiting."

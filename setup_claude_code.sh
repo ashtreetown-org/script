@@ -128,21 +128,32 @@ config_router() {
     for CONF in "${SHELL_CONFIGS[@]}"; do
         if [ -f "$CONF" ]; then
             echo "Checking $CONF..."
-            
-            # Check for existing ANTHROPIC_BASE_URL
-            if grep -q "export ANTHROPIC_BASE_URL=" "$CONF"; then
-                 echo "Warning: ANTHROPIC_BASE_URL is already defined in $CONF. Skipping."
+
+            MISSING_URL=false
+            if ! grep -q "export ANTHROPIC_BASE_URL=" "$CONF"; then MISSING_URL=true; fi
+
+            MISSING_TOKEN=false
+            if ! grep -q "export ANTHROPIC_AUTH_TOKEN=" "$CONF"; then MISSING_TOKEN=true; fi
+
+            if [ "$MISSING_URL" = true ] || [ "$MISSING_TOKEN" = true ]; then
+                echo "" >> "$CONF"
+                echo "# Claude Code" >> "$CONF"
+
+                if [ "$MISSING_URL" = true ]; then
+                    echo "export ANTHROPIC_BASE_URL=\"$BASE_URL\"" >> "$CONF"
+                    echo "Added ANTHROPIC_BASE_URL to $CONF"
+                else
+                    echo "Warning: ANTHROPIC_BASE_URL is already defined in $CONF. Skipping."
+                fi
+
+                if [ "$MISSING_TOKEN" = true ]; then
+                    echo "export ANTHROPIC_AUTH_TOKEN=\"$AUTH_TOKEN\"" >> "$CONF"
+                    echo "Added ANTHROPIC_AUTH_TOKEN to $CONF"
+                else
+                    echo "Warning: ANTHROPIC_AUTH_TOKEN is already defined in $CONF. Skipping."
+                fi
             else
-                 echo "export ANTHROPIC_BASE_URL=\"$BASE_URL\"" >> "$CONF"
-                 echo "Added ANTHROPIC_BASE_URL to $CONF"
-            fi
-            
-            # Check for existing ANTHROPIC_AUTH_TOKEN
-            if grep -q "export ANTHROPIC_AUTH_TOKEN=" "$CONF"; then
-                 echo "Warning: ANTHROPIC_AUTH_TOKEN is already defined in $CONF. Skipping."
-            else
-                 echo "export ANTHROPIC_AUTH_TOKEN=\"$AUTH_TOKEN\"" >> "$CONF"
-                 echo "Added ANTHROPIC_AUTH_TOKEN to $CONF"
+                echo "Configuration already exists in $CONF."
             fi
         fi
     done

@@ -31,10 +31,11 @@ esac
 
 if [ "$OS_TYPE" = "linux" ]; then
     if [ "$ARCH_TYPE" = "x86_64" ]; then
-        RELEASE_NAME="nvim-linux64"
+        RELEASE_NAME="nvim-linux-x86_64"
+    elif [ "$ARCH_TYPE" = "arm64" ]; then
+        RELEASE_NAME="nvim-linux-arm64"
     else
-        echo "Error: Pre-built Neovim binaries for Linux ARM64 are not always consistently named/available in the main release flow in the same way. Assuming 'nvim-linux64' for x86_64 only in this script version."
-        echo "Please verify support for $ARCH on Linux."
+        echo "Error: Unsupported architecture for Linux: $ARCH_TYPE"
         exit 1
     fi
 elif [ "$OS_TYPE" = "macos" ]; then
@@ -74,11 +75,21 @@ install_nvim() {
 
     echo "Downloading $DOWNLOAD_URL to $TEMP_DIR..."
     
-    if command -v wget >/dev/null 2>&1; then
-        wget -q --show-progress -O "$TEMP_DIR/$TAR_FILE" "$DOWNLOAD_URL"
+    if command -v curl >/dev/null 2>&1; then
+        echo "Using curl to download..."
+        if ! curl -L --fail -o "$TEMP_DIR/$TAR_FILE" "$DOWNLOAD_URL"; then
+            echo "Error: Failed to download Neovim using curl."
+            exit 1
+        fi
+    elif command -v wget >/dev/null 2>&1; then
+        echo "Using wget to download..."
+        if ! wget --show-progress -O "$TEMP_DIR/$TAR_FILE" "$DOWNLOAD_URL"; then
+            echo "Error: Failed to download Neovim using wget."
+            exit 1
+        fi
     else
-        echo "wget not found, using curl..."
-        curl -L -o "$TEMP_DIR/$TAR_FILE" "$DOWNLOAD_URL"
+        echo "Error: Neither curl nor wget was found. Please install one to continue."
+        exit 1
     fi
 
     echo "Extracting to $TEMP_DIR..."
